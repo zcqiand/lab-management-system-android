@@ -106,9 +106,9 @@ internal fun ReceiptsListScreen(
   }
 }
 
-/** act 提交段（多选态在父级，回填走 listVm.apply）：逐单业务失败拼接红字，不 throw 不吞。 */
+/** act 提交段（多选态在父级，回填走 listVm.apply）：逐单业务失败拼接红字，不 throw 不吞。分配队列复用（M03.F02.I05 换 act 缝即用）。 */
 @Composable
-private fun ReceiptsActSection(
+internal fun ReceiptsActSection(
     flowVm: ReceivingFlowViewModel,
     listVm: ReceiptsViewModel,
     selected: SnapshotStateList<String>,
@@ -203,7 +203,7 @@ private fun ReceiptsListHeader(onBack: () -> Unit, onCreate: () -> Unit, isLoadi
 
 /** 加载更多行（整页才有更多；忙时禁点防连击）。 */
 @Composable
-private fun ReceiptsLoadMoreButton(hasMore: Boolean, isLoading: Boolean, onLoadMore: () -> Unit) {
+internal fun ReceiptsLoadMoreButton(hasMore: Boolean, isLoading: Boolean, onLoadMore: () -> Unit) {
   if (hasMore) {
     TextButton(
         onClick = onLoadMore,

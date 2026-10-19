@@ -216,4 +216,25 @@ class ReceiptsViewModelTest {
 
     assertEquals(FlowStatus.receiving, vm.items.value.first { it.id == "r1" }.flowStatus)
   }
+
+  @Test
+  fun `load pins flowStatus preset into provider query`() {
+    var seen: ReceiptListQuery? = null
+    val seams =
+        ReceiptsViewModel.Seams(
+            list = { q ->
+              seen = q
+              emptyList()
+            },
+        )
+    val vm = ReceiptsViewModel(seams)
+
+    kotlinx.coroutines.runBlocking {
+      vm.load(ReceiptFilter.All, "WT-1", FlowStatus.task_assignment)
+    }
+
+    assertEquals(FlowStatus.task_assignment, seen?.flowStatus, "队列查询必须钉在分配环节")
+    assertEquals("WT-1", seen?.keyword)
+    assertEquals(1, seen?.page)
+  }
 }

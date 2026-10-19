@@ -8,4 +8,4 @@ naming:
   FunctionNaming:
     ignoreAnnotated: ['Composable'] # Compose 官方惯例：UI 组件函数 PascalCase（AOSP/Compose 指南），定向豁免 2026-10-19 登录切片
 exceptions:
-  excludes: ['**/ui/AuthViewModel.kt', '**/app/LoginWire.kt', '**/app/ReceiptWire.kt', '**/ui/ReceiptsViewModel.kt', '**/ui/ReceiptDetailViewModel.kt', '**/ui/ReceiptDeleteViewModel.kt'] # seam 边界归一任意传输层异常为 AuthError.Unreachable、VM 捕 provider 抛出落 error 态，泛捕即职责本身（定向豁免 2026-10-19 登录切片；ReceiptWire 同位、ReceiptsViewModel 2026-10-19 列表切片）
+  excludes: ['**/ui/AuthViewModel.kt', '**/app/LoginWire.kt', '**/app/ReceiptWire.kt', '**/app/AssignWire.kt', '**/ui/ReceiptsViewModel.kt', '**/ui/ReceiptDetailViewModel.kt', '**/ui/ReceiptDeleteViewModel.kt', '**/ui/AssignTaskViewModel.kt'] # seam 边界归一任意传输层异常为 AuthError.Unreachable、VM 捕 provider 抛出落 error 态，泛捕即职责本身（定向豁免 2026-10-19 登录切片；ReceiptWire 同位、ReceiptsViewModel 2026-10-19 列表切片；AssignWire/AssignTaskViewModel 2026-10-20 任务分配切片同位）

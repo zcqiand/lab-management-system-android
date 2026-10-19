@@ -4,6 +4,7 @@ import io.xr.harness.core.ReceiptFilter
 import io.xr.harness.core.ReceiptListQuery
 import io.xr.harness.core.ReceiptsPaging
 import io.xr.lab.shared.models.FlowActionResult
+import io.xr.lab.shared.models.FlowStatus
 import io.xr.lab.shared.models.SampleReceipt
 import kotlin.math.max
 import kotlinx.coroutines.CancellationException
@@ -37,13 +38,21 @@ class ReceiptsViewModel(internal val seams: Seams = Seams()) {
   var query: ReceiptListQuery = ReceiptListQuery()
     private set
 
-  /** 回第 1 页整表替换（swift load 同构）；filter/keyword 变更经此入查询（keyword trim、空白归 null）。 */
-  suspend fun load(filter: ReceiptFilter = query.filter, keyword: String? = query.keyword) {
+  /**
+   * 回第 1 页整表替换（swift load 同构）；filter/keyword 变更经此入查询（keyword trim、空白归 null）；flowStatus
+   * 预设钉环节（分配队列等复用，M03.F02.I01）。
+   */
+  suspend fun load(
+      filter: ReceiptFilter = query.filter,
+      keyword: String? = query.keyword,
+      flowStatus: FlowStatus? = query.flowStatus,
+  ) {
     query =
         query.copy(
             page = ReceiptsPaging.DEFAULT_PAGE,
             filter = filter,
             keyword = keyword?.trim()?.takeIf { it.isNotEmpty() },
+            flowStatus = flowStatus,
         )
     fetch(reset = true)
   }

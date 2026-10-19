@@ -84,7 +84,8 @@ fun AppRoot() {
   }
   val session by vm.session.collectAsState()
   val user by vm.user.collectAsState()
-  var showReceipts by remember { mutableStateOf(false) }
+  // 就绪后子屏路由（null=账户页）：receipts=接样单 / assign=任务分配
+  var screen by remember { mutableStateOf<String?>(null) }
 
   // 启动自愈：持久化会话 whoami 校验，失败即清密回登录
   LaunchedEffect(Unit) { vm.restore() }
@@ -103,16 +104,17 @@ fun AppRoot() {
             onReconfigure = { vm.reconfigure() },
         )
     is SessionState.Ready ->
-        if (showReceipts) {
-          ReceiptsScreen(onBack = { showReceipts = false }, store = store, tokens = tokens)
-        } else {
-          AccountScreen(
-              vm = vm,
-              ready = s,
-              user = user,
-              onOpenReceipts = { showReceipts = true },
-              onLogout = { scope.launch { vm.logout() } },
-          )
+        when (screen) {
+          "receipts" -> ReceiptsScreen(onBack = { screen = null }, store = store, tokens = tokens)
+          "assign" -> AssignQueueScreen(onBack = { screen = null }, store = store, tokens = tokens)
+          else ->
+              AccountScreen(
+                  vm = vm,
+                  ready = s,
+                  user = user,
+                  onOpen = { screen = it },
+                  onLogout = { scope.launch { vm.logout() } },
+              )
         }
   }
 }
@@ -211,7 +213,7 @@ fun AccountScreen(
     vm: AuthViewModel,
     ready: SessionState.Ready,
     user: WhoamiUser?,
-    onOpenReceipts: () -> Unit,
+    onOpen: (String) -> Unit,
     onLogout: () -> Unit,
 ) {
   val scope = rememberCoroutineScope()
@@ -232,7 +234,13 @@ fun AccountScreen(
     Text(text = "用户：${ready.username}")
     ready.tenantId?.let { Text(text = "租户：$it") }
     Spacer(modifier = Modifier.height(16.dp))
-    Button(onClick = onOpenReceipts, modifier = Modifier.fillMaxWidth()) { Text(text = "接样单列表") }
+    Button(onClick = { onOpen("receipts") }, modifier = Modifier.fillMaxWidth()) {
+      Text(text = "接样单列表")
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+    Button(onClick = { onOpen("assign") }, modifier = Modifier.fillMaxWidth()) {
+      Text(text = "任务分配")
+    }
     Spacer(modifier = Modifier.height(16.dp))
     Text(text = "租户成员", style = MaterialTheme.typography.titleMedium)
     if (tenants.isEmpty()) {
