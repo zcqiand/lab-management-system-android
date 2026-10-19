@@ -110,6 +110,7 @@ fun AppRoot() {
           "assign" -> AssignQueueScreen(onBack = { screen = null }, store = store, tokens = tokens)
           "dataentry" ->
               DataEntryQueueScreen(onBack = { screen = null }, store = store, tokens = tokens)
+          "report" -> ReportHomeScreen(onBack = { screen = null }, store = store, tokens = tokens)
           else ->
               AccountScreen(
                   vm = vm,
@@ -248,6 +249,8 @@ fun AccountScreen(
     Button(onClick = { onOpen("dataentry") }, modifier = Modifier.fillMaxWidth()) {
       Text(text = "数据录入")
     }
+    Spacer(modifier = Modifier.height(8.dp))
+    Button(onClick = { onOpen("report") }, modifier = Modifier.fillMaxWidth()) { Text(text = "报告") }
     Spacer(modifier = Modifier.height(16.dp))
     TenantMemberSection(vm = vm, ready = ready, tenants = tenants, busy = busy)
     (phase as? AuthPhase.Failed)?.let { failed ->
