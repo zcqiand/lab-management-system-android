@@ -7,18 +7,22 @@ Lab 管理系统 Android 端（`lab-management-system-android`）——一句话
 ## 快速开始
 
 ```bash
-# 按 android 栈替换为实际命令
-npm install        # 安装依赖
-npm test           # 全量测试（无 Key / 无 Docker / 无网可跑）
-npm run dev        # 本地开发
-npm run build      # 生产构建
+export PATH="/d/qiand-life/3-resources/8-ego/software/gradle-9.8.1/bin:$PATH"
+export ANDROID_HOME="D:\qiand-life-resources\8-ego\softwarendroid-sdk"
+gradle test            # JVM 单测（无设备依赖）
+gradle assembleDebug   # 构建 APK
 ```
 
-## env 契约
+> 依赖镜像与 wrapper 纪律见 CLAUDE.md；禁仓内 gradlew 入门（全局 gradle PATH）。
 
-| 键 | 语义 | 缺失行为 |
+## 运行配置（应用内配置页）
+
+后端基址不走 env，应用首启进**配置页**手填（swift 仓 ConfigView 同构；缺失即拦，禁止默认值兜底，
+suite-hard-rules §1）。lab 登录代理化无 clientId（REQ-2026-023）；SSO clientId/callBackScheme 配置归 SSO 刀。
+
+| 项 | dev 值 | 说明 |
 | :--- | :--- | :--- |
-| `API_BASE_URL` | 后端 API 基址。dev 值 `http://localhost:5204`（X04 aspnetcore 槽，后端切换归 backend-config 切换器） | **抛错**（fail-fast，禁止默认值兜底，suite-hard-rules §1） |
+| API 地址 | `http://10.0.2.2:5204`（模拟器内访问宿主机）/ `http://localhost:5204`（宿主机直跑） | X04 aspnetcore 槽，后端切换归 backend-config 切换器 |
 
 ## 功能特性
 
