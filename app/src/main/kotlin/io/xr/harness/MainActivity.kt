@@ -5,11 +5,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -32,15 +35,19 @@ import io.xr.harness.app.SharedPreferencesTokenStore
 import io.xr.harness.app.listTenantsSeam
 import io.xr.harness.app.loginSeam
 import io.xr.harness.app.logoutSeam
+import io.xr.harness.app.receiptsListSeam
 import io.xr.harness.app.switchTenantSeam
 import io.xr.harness.app.whoamiSeam
 import io.xr.harness.core.ApiGlue
+import io.xr.harness.core.ReceiptFilter
 import io.xr.harness.core.SessionState
 import io.xr.harness.core.SessionStore
 import io.xr.harness.core.TokenHolder
 import io.xr.harness.core.WhoamiUser
 import io.xr.harness.ui.AuthPhase
 import io.xr.harness.ui.AuthViewModel
+import io.xr.harness.ui.ReceiptsViewModel
+import io.xr.lab.shared.models.SampleReceipt
 import kotlinx.coroutines.launch
 
 /** 三态路由（swift App 层同构）：needsSetup → 配置表单 / needsLogin → 登录表单 / ready → 账户。 */
@@ -80,6 +87,7 @@ fun AppRoot() {
   }
   val session by vm.session.collectAsState()
   val user by vm.user.collectAsState()
+  var showReceipts by remember { mutableStateOf(false) }
 
   // 启动自愈：持久化会话 whoami 校验，失败即清密回登录
   LaunchedEffect(Unit) { vm.restore() }
@@ -98,12 +106,17 @@ fun AppRoot() {
             onReconfigure = { vm.reconfigure() },
         )
     is SessionState.Ready ->
-        AccountScreen(
-            vm = vm,
-            ready = s,
-            user = user,
-            onLogout = { scope.launch { vm.logout() } },
-        )
+        if (showReceipts) {
+          ReceiptsScreen(onBack = { showReceipts = false }, store = store, tokens = tokens)
+        } else {
+          AccountScreen(
+              vm = vm,
+              ready = s,
+              user = user,
+              onOpenReceipts = { showReceipts = true },
+              onLogout = { scope.launch { vm.logout() } },
+          )
+        }
   }
 }
 
@@ -201,6 +214,7 @@ fun AccountScreen(
     vm: AuthViewModel,
     ready: SessionState.Ready,
     user: WhoamiUser?,
+    onOpenReceipts: () -> Unit,
     onLogout: () -> Unit,
 ) {
   val scope = rememberCoroutineScope()
@@ -220,6 +234,8 @@ fun AccountScreen(
     user?.displayName?.let { Text(text = "昵称：$it") }
     Text(text = "用户：${ready.username}")
     ready.tenantId?.let { Text(text = "租户：$it") }
+    Spacer(modifier = Modifier.height(16.dp))
+    Button(onClick = onOpenReceipts, modifier = Modifier.fillMaxWidth()) { Text(text = "接样单列表") }
     Spacer(modifier = Modifier.height(16.dp))
     Text(text = "租户成员", style = MaterialTheme.typography.titleMedium)
     if (tenants.isEmpty()) {
@@ -251,5 +267,104 @@ fun AccountScreen(
     Button(onClick = onLogout, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
       Text(text = "退出登录")
     }
+  }
+}
+
+/** 接样单列表（swift ReceiptListView 只读面同构）：三态过滤 + 关键字 + 分页（act/新建/详情归后刀）。 */
+@Composable
+fun ReceiptsScreen(onBack: () -> Unit, store: SessionStore, tokens: TokenHolder) {
+  val scope = rememberCoroutineScope()
+  val vm = remember {
+    ReceiptsViewModel(ReceiptsViewModel.Seams(list = receiptsListSeam(store, tokens)))
+  }
+  val items by vm.items.collectAsState()
+  val isLoading by vm.isLoading.collectAsState()
+  val error by vm.error.collectAsState()
+  val hasMore by vm.hasMore.collectAsState()
+  var keyword by remember { mutableStateOf("") }
+  var filter by remember { mutableStateOf(ReceiptFilter.All) }
+
+  LaunchedEffect(Unit) { vm.load(filter, keyword) }
+
+  Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
+    Text(text = "接样单", style = MaterialTheme.typography.headlineMedium)
+    Spacer(modifier = Modifier.height(8.dp))
+    ReceiptsFilterRow(
+        selected = filter,
+        isLoading = isLoading,
+        onSelect = { f ->
+          filter = f
+          scope.launch { vm.load(f, keyword) }
+        },
+    )
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+      OutlinedTextField(
+          value = keyword,
+          onValueChange = { keyword = it },
+          label = { Text(text = "委托编号关键字") },
+          modifier = Modifier.weight(1f),
+          singleLine = true,
+      )
+      Button(
+          onClick = { scope.launch { vm.load(filter, keyword) } },
+          enabled = !isLoading,
+      ) {
+        Text(text = "搜索")
+      }
+    }
+    error?.let {
+      Spacer(modifier = Modifier.height(8.dp))
+      Text(text = it, color = MaterialTheme.colorScheme.error)
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+    LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
+      items(items, key = { it.id }) { r -> ReceiptsRow(r) }
+    }
+    if (hasMore) {
+      TextButton(
+          onClick = { scope.launch { vm.loadNextPage() } },
+          enabled = !isLoading,
+          modifier = Modifier.fillMaxWidth(),
+      ) {
+        Text(text = if (isLoading) "加载中…" else "加载更多")
+      }
+    }
+    TextButton(onClick = onBack, enabled = !isLoading) { Text(text = "返回") }
+  }
+}
+
+/** 三态过滤行（swift 同款 全部/未提交/已提交 + ✓ 当前项）。 */
+@Composable
+private fun ReceiptsFilterRow(
+    selected: ReceiptFilter,
+    isLoading: Boolean,
+    onSelect: (ReceiptFilter) -> Unit,
+) {
+  Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    ReceiptFilter.entries.forEach { f ->
+      TextButton(onClick = { onSelect(f) }, enabled = !isLoading) {
+        Text(
+            text =
+                when (f) {
+                  ReceiptFilter.All -> "全部"
+                  ReceiptFilter.NotYet -> "未提交"
+                  ReceiptFilter.Submitted -> "已提交"
+                } + if (selected == f) " ✓" else "",
+        )
+      }
+    }
+  }
+}
+
+/** 列表行：委托编号 + 阶段 · 时间。 */
+@Composable
+private fun ReceiptsRow(r: SampleReceipt) {
+  Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+    Text(text = r.commissionCode, style = MaterialTheme.typography.bodyLarge)
+    Text(
+        text = "${r.flowStatus.value} · ${r.createdAt}",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
   }
 }
