@@ -40,6 +40,7 @@ import io.xr.harness.app.whoamiSeam
 import io.xr.harness.core.ApiGlue
 import io.xr.harness.core.SessionState
 import io.xr.harness.core.SessionStore
+import io.xr.harness.core.TenantItem
 import io.xr.harness.core.TokenHolder
 import io.xr.harness.core.WhoamiUser
 import io.xr.harness.ui.AuthPhase
@@ -84,7 +85,7 @@ fun AppRoot() {
   }
   val session by vm.session.collectAsState()
   val user by vm.user.collectAsState()
-  // 就绪后子屏路由（null=账户页）：receipts=接样单 / assign=任务分配
+  // 就绪后子屏路由（null=账户页）：receipts=接样单 / assign=任务分配 / dataentry=数据录入
   var screen by remember { mutableStateOf<String?>(null) }
 
   // 启动自愈：持久化会话 whoami 校验，失败即清密回登录
@@ -107,6 +108,8 @@ fun AppRoot() {
         when (screen) {
           "receipts" -> ReceiptsScreen(onBack = { screen = null }, store = store, tokens = tokens)
           "assign" -> AssignQueueScreen(onBack = { screen = null }, store = store, tokens = tokens)
+          "dataentry" ->
+              DataEntryQueueScreen(onBack = { screen = null }, store = store, tokens = tokens)
           else ->
               AccountScreen(
                   vm = vm,
@@ -241,29 +244,12 @@ fun AccountScreen(
     Button(onClick = { onOpen("assign") }, modifier = Modifier.fillMaxWidth()) {
       Text(text = "任务分配")
     }
+    Spacer(modifier = Modifier.height(8.dp))
+    Button(onClick = { onOpen("dataentry") }, modifier = Modifier.fillMaxWidth()) {
+      Text(text = "数据录入")
+    }
     Spacer(modifier = Modifier.height(16.dp))
-    Text(text = "租户成员", style = MaterialTheme.typography.titleMedium)
-    if (tenants.isEmpty()) {
-      Text(text = "无成员关系", color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-    tenants.forEach { t ->
-      val isCurrent = t.tenantId == ready.tenantId
-      TextButton(
-          onClick = { scope.launch { vm.switchTenant(t.tenantId) } },
-          enabled = !busy && !isCurrent,
-      ) {
-        Text(
-            text =
-                buildString {
-                  append(t.name ?: t.tenantId)
-                  if (isCurrent) {
-                    append(" ✓")
-                  }
-                  t.detail?.let { append("（$it）") }
-                },
-        )
-      }
-    }
+    TenantMemberSection(vm = vm, ready = ready, tenants = tenants, busy = busy)
     (phase as? AuthPhase.Failed)?.let { failed ->
       Spacer(modifier = Modifier.height(8.dp))
       Text(text = failed.message, color = MaterialTheme.colorScheme.error)
@@ -271,6 +257,39 @@ fun AccountScreen(
     Spacer(modifier = Modifier.height(16.dp))
     Button(onClick = onLogout, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
       Text(text = "退出登录")
+    }
+  }
+}
+
+/** 租户成员段（点选切换，当前带 ✓，busy 禁点防连击）。 */
+@Composable
+private fun TenantMemberSection(
+    vm: AuthViewModel,
+    ready: SessionState.Ready,
+    tenants: List<TenantItem>,
+    busy: Boolean,
+) {
+  val scope = rememberCoroutineScope()
+  Text(text = "租户成员", style = MaterialTheme.typography.titleMedium)
+  if (tenants.isEmpty()) {
+    Text(text = "无成员关系", color = MaterialTheme.colorScheme.onSurfaceVariant)
+  }
+  tenants.forEach { t ->
+    val isCurrent = t.tenantId == ready.tenantId
+    TextButton(
+        onClick = { scope.launch { vm.switchTenant(t.tenantId) } },
+        enabled = !busy && !isCurrent,
+    ) {
+      Text(
+          text =
+              buildString {
+                append(t.name ?: t.tenantId)
+                if (isCurrent) {
+                  append(" ✓")
+                }
+                t.detail?.let { append("（$it）") }
+              },
+      )
     }
   }
 }
