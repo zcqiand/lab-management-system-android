@@ -4,6 +4,7 @@ import io.xr.harness.core.AuthError
 import io.xr.harness.core.ReceiptFilter
 import io.xr.harness.core.ReceiptListQuery
 import io.xr.harness.core.ReceiptsPaging
+import io.xr.lab.shared.models.FlowActionResult
 import io.xr.lab.shared.models.FlowStatus
 import io.xr.lab.shared.models.SampleReceipt
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -175,5 +176,44 @@ class ReceiptsViewModelTest {
 
     assertEquals(listOf("done-1"), vm.items.value.map { it.id })
     assertEquals(ReceiptFilter.Submitted, vm.query.filter)
+  }
+
+  @Test
+  fun `apply updates flowStatus by id and leaves uninvolved rows untouched`() {
+    val seams = ReceiptsViewModel.Seams(list = { listOf(receipt("r1"), receipt("r2")) })
+    val vm = ReceiptsViewModel(seams)
+    kotlinx.coroutines.runBlocking { vm.load() }
+
+    vm.apply(
+        listOf(
+            FlowActionResult(id = "r1", ok = true, flowStatus = FlowStatus.task_assignment),
+            FlowActionResult(id = "r9", ok = false, message = "状态不允许提交"),
+        ),
+    )
+
+    assertEquals(FlowStatus.task_assignment, vm.items.value.first { it.id == "r1" }.flowStatus)
+    assertEquals(FlowStatus.receiving, vm.items.value.first { it.id == "r2" }.flowStatus)
+  }
+
+  @Test
+  fun `apply with no flowStatus on result leaves row untouched`() {
+    val seams = ReceiptsViewModel.Seams(list = { listOf(receipt("r1")) })
+    val vm = ReceiptsViewModel(seams)
+    kotlinx.coroutines.runBlocking { vm.load() }
+
+    vm.apply(listOf(FlowActionResult(id = "r1", ok = false, message = "状态不允许提交")))
+
+    assertEquals(FlowStatus.receiving, vm.items.value.first { it.id == "r1" }.flowStatus)
+  }
+
+  @Test
+  fun `apply with empty results is a no-op`() {
+    val seams = ReceiptsViewModel.Seams(list = { listOf(receipt("r1")) })
+    val vm = ReceiptsViewModel(seams)
+    kotlinx.coroutines.runBlocking { vm.load() }
+
+    vm.apply(emptyList())
+
+    assertEquals(FlowStatus.receiving, vm.items.value.first { it.id == "r1" }.flowStatus)
   }
 }

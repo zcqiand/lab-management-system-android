@@ -3,6 +3,7 @@ package io.xr.harness.ui
 import io.xr.harness.core.ReceiptFilter
 import io.xr.harness.core.ReceiptListQuery
 import io.xr.harness.core.ReceiptsPaging
+import io.xr.lab.shared.models.FlowActionResult
 import io.xr.lab.shared.models.SampleReceipt
 import kotlin.math.max
 import kotlinx.coroutines.CancellationException
@@ -51,6 +52,23 @@ class ReceiptsViewModel(internal val seams: Seams = Seams()) {
   suspend fun loadNextPage() {
     query = query.copy(page = query.page + 1)
     fetch(reset = false)
+  }
+
+  /** act 结果回填（swift apply 同构）：按 id 更新 flowStatus；结果不带阶段或空结果集不动表。 */
+  fun apply(results: List<FlowActionResult>) {
+    if (results.isEmpty()) {
+      return
+    }
+    val byId = results.associateBy { it.id }
+    _items.value =
+        _items.value.map { item ->
+          val result = byId[item.id]
+          if (result != null && result.flowStatus != null) {
+            item.copy(flowStatus = result.flowStatus)
+          } else {
+            item
+          }
+        }
   }
 
   private suspend fun fetch(reset: Boolean) {

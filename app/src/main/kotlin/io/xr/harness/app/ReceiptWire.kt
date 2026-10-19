@@ -1,14 +1,13 @@
 package io.xr.harness.app
 
-import io.ktor.client.statement.bodyAsText
-import io.xr.harness.core.ApiGlue
 import io.xr.harness.core.AuthError
 import io.xr.harness.core.ReceiptListQuery
 import io.xr.harness.core.SessionStore
 import io.xr.harness.core.TokenHolder
-import io.xr.lab.shared.api.ReceiptsApi
-import io.xr.lab.shared.infrastructure.HttpResponse
 import io.xr.lab.shared.models.CreateSampleReceiptRequest
+import io.xr.lab.shared.models.FlowAction
+import io.xr.lab.shared.models.FlowActionRequest
+import io.xr.lab.shared.models.FlowActionResult
 import io.xr.lab.shared.models.FlowHistoryEntry
 import io.xr.lab.shared.models.SampleReceipt
 import io.xr.lab.shared.models.UpdateSampleReceiptRequest
@@ -139,22 +138,33 @@ private suspend fun deleteCall(
   requireOk(resp)
 }
 
-/** Api 构造（唯一摸 ReceiptsApi 的入口；baseUrl 缺失显式抛）。 */
-private fun receiptsApi(
+/**
+ * act 缝（swift APIGlue.act 接样阶段同位，M03.F01.I04/I08）：接样阶段流转统一端点，operator 由调用方给真会话身份。 调用体 内联在缝
+ * lambda（actCall 六参超 LongParameterList 阈值，且本文件函数数贴 TooManyFunctions 上限）。
+ */
+fun receiptsActSeam(
     store: SessionStore,
     tokens: TokenHolder,
-): ReceiptsApi {
-  val baseUrl = store.baseUrl ?: throw AuthError.ClientNotConfigured()
-  return ReceiptsApi(
-      baseUrl = ApiGlue.normalizeBaseURL(baseUrl),
-      httpClientConfig = ApiGlue.bearerClientConfig(tokens),
-  )
-}
-
-/** 非 2xx 手解（生成 client 不抛）→ mapHttpError。 */
-private suspend fun <T> requireOk(resp: HttpResponse<T>) {
-  if (!resp.success) {
-    val bodyText = runCatching { resp.response.bodyAsText() }.getOrNull()
-    throw ApiGlue.mapHttpError(resp.status, bodyText)
+    operator: String,
+): suspend (FlowAction, List<String>, String?) -> List<FlowActionResult> {
+  return { action, ids, reason ->
+    try {
+      val resp =
+          receiptsApi(store, tokens)
+              .receiptsActFlowReceiving(
+                  FlowActionRequest(
+                      ids = ids,
+                      action = action,
+                      `operator` = operator,
+                      reason = reason,
+                  ),
+              )
+      requireOk(resp)
+      resp.body()
+    } catch (e: AuthError) {
+      throw e
+    } catch (e: Exception) {
+      throw AuthError.Unreachable(e)
+    }
   }
 }

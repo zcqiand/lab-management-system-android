@@ -3,17 +3,13 @@ package io.xr.harness
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -39,11 +35,9 @@ import io.xr.harness.app.fieldsFrom
 import io.xr.harness.app.listTenantsSeam
 import io.xr.harness.app.loginSeam
 import io.xr.harness.app.logoutSeam
-import io.xr.harness.app.receiptsListSeam
 import io.xr.harness.app.switchTenantSeam
 import io.xr.harness.app.whoamiSeam
 import io.xr.harness.core.ApiGlue
-import io.xr.harness.core.ReceiptFilter
 import io.xr.harness.core.SessionState
 import io.xr.harness.core.SessionStore
 import io.xr.harness.core.TokenHolder
@@ -51,8 +45,6 @@ import io.xr.harness.core.WhoamiUser
 import io.xr.harness.ui.AuthPhase
 import io.xr.harness.ui.AuthViewModel
 import io.xr.harness.ui.ReceiptFormFields
-import io.xr.harness.ui.ReceiptsViewModel
-import io.xr.lab.shared.models.SampleReceipt
 import kotlinx.coroutines.launch
 
 /** 三态路由（swift App 层同构）：needsSetup → 配置表单 / needsLogin → 登录表单 / ready → 账户。 */
@@ -312,126 +304,5 @@ fun ReceiptsScreen(onBack: () -> Unit, store: SessionStore, tokens: TokenHolder)
           tokens = tokens,
       )
     }
-  }
-}
-
-/** 接样单列表（swift ReceiptListView 只读面同构）：三态过滤 + 关键字 + 分页 + 行进详情 + 新建。 */
-@Composable
-private fun ReceiptsListScreen(
-    onBack: () -> Unit,
-    onOpen: (String) -> Unit,
-    onCreate: () -> Unit,
-    store: SessionStore,
-    tokens: TokenHolder,
-) {
-  val scope = rememberCoroutineScope()
-  val vm = remember {
-    ReceiptsViewModel(ReceiptsViewModel.Seams(list = receiptsListSeam(store, tokens)))
-  }
-  val items by vm.items.collectAsState()
-  val isLoading by vm.isLoading.collectAsState()
-  val error by vm.error.collectAsState()
-  val hasMore by vm.hasMore.collectAsState()
-  var keyword by remember { mutableStateOf("") }
-  var filter by remember { mutableStateOf(ReceiptFilter.All) }
-
-  LaunchedEffect(Unit) { vm.load(filter, keyword) }
-
-  Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-      Button(onClick = onBack, enabled = !isLoading) { Text(text = "返回") }
-      Text(text = "接样单", style = MaterialTheme.typography.headlineMedium)
-      TextButton(onClick = onCreate, enabled = !isLoading) { Text(text = "新建") }
-    }
-    Spacer(modifier = Modifier.height(8.dp))
-    ReceiptsFilterRow(
-        selected = filter,
-        isLoading = isLoading,
-        onSelect = { f ->
-          filter = f
-          scope.launch { vm.load(f, keyword) }
-        },
-    )
-    ReceiptsSearchRow(
-        keyword = keyword,
-        isLoading = isLoading,
-        onKeywordChange = { keyword = it },
-        onSearch = { scope.launch { vm.load(filter, keyword) } },
-    )
-    error?.let {
-      Spacer(modifier = Modifier.height(8.dp))
-      Text(text = it, color = MaterialTheme.colorScheme.error)
-    }
-    Spacer(modifier = Modifier.height(8.dp))
-    LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
-      items(items, key = { it.id }) { r -> ReceiptsRow(r, onOpen) }
-    }
-    if (hasMore) {
-      TextButton(
-          onClick = { scope.launch { vm.loadNextPage() } },
-          enabled = !isLoading,
-          modifier = Modifier.fillMaxWidth(),
-      ) {
-        Text(text = if (isLoading) "加载中…" else "加载更多")
-      }
-    }
-  }
-}
-
-/** 关键字搜索行。 */
-@Composable
-private fun ReceiptsSearchRow(
-    keyword: String,
-    isLoading: Boolean,
-    onKeywordChange: (String) -> Unit,
-    onSearch: () -> Unit,
-) {
-  Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-    OutlinedTextField(
-        value = keyword,
-        onValueChange = onKeywordChange,
-        label = { Text(text = "委托编号关键字") },
-        modifier = Modifier.weight(1f),
-        singleLine = true,
-    )
-    Button(onClick = onSearch, enabled = !isLoading) { Text(text = "搜索") }
-  }
-}
-
-/** 三态过滤行（swift 同款 全部/未提交/已提交 + ✓ 当前项）。 */
-@Composable
-private fun ReceiptsFilterRow(
-    selected: ReceiptFilter,
-    isLoading: Boolean,
-    onSelect: (ReceiptFilter) -> Unit,
-) {
-  Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-    ReceiptFilter.entries.forEach { f ->
-      TextButton(onClick = { onSelect(f) }, enabled = !isLoading) {
-        Text(
-            text =
-                when (f) {
-                  ReceiptFilter.All -> "全部"
-                  ReceiptFilter.NotYet -> "未提交"
-                  ReceiptFilter.Submitted -> "已提交"
-                } + if (selected == f) " ✓" else "",
-        )
-      }
-    }
-  }
-}
-
-/** 列表行：委托编号 + 阶段 · 时间（整行点击进详情）。 */
-@Composable
-private fun ReceiptsRow(r: SampleReceipt, onOpen: (String) -> Unit) {
-  Column(
-      modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).clickable { onOpen(r.id) },
-  ) {
-    Text(text = r.commissionCode, style = MaterialTheme.typography.bodyLarge)
-    Text(
-        text = "${r.flowStatus.value} · ${r.createdAt}",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
   }
 }
