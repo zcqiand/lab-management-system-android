@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.xr.harness.ReceiptFormTarget
+import io.xr.harness.ReportPreviewScreen
 import io.xr.harness.core.SessionStore
 import io.xr.harness.core.TokenHolder
 import io.xr.harness.ui.ReceiptDeleteViewModel
@@ -33,6 +34,7 @@ import io.xr.harness.ui.ReceiptDetailViewModel
 import io.xr.harness.ui.ReceiptFormFields
 import io.xr.harness.ui.ReceiptFormViewModel
 import io.xr.lab.shared.models.FlowHistoryEntry
+import io.xr.lab.shared.models.ReceiptResult
 import io.xr.lab.shared.models.SampleReceipt
 import kotlinx.coroutines.launch
 
@@ -155,8 +157,21 @@ internal fun ReceiptDetailScreen(
   val error by vm.error.collectAsState()
   val delBusy by delVm.isDeleting.collectAsState()
   val delError by delVm.error.collectAsState()
+  var showPreview by remember { mutableStateOf(false) }
 
   LaunchedEffect(id) { vm.load(id) }
+
+  // REQ-2026-007 I03：数据面报告预览（swift sheet 同位，全屏路由家族形态）。
+  if (showPreview) {
+    ReportPreviewScreen(
+        receiptId = id,
+        categoryCode = receipt?.categoryCode.orEmpty(),
+        onClose = { showPreview = false },
+        store = store,
+        tokens = tokens,
+    )
+    return
+  }
 
   Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -170,6 +185,8 @@ internal fun ReceiptDetailScreen(
     }
     receipt?.let { r -> ReceiptDetailFields(r) }
     Spacer(modifier = Modifier.height(8.dp))
+    Button(onClick = { showPreview = true }, enabled = receipt != null) { Text(text = "报告预览") }
+    Spacer(modifier = Modifier.height(8.dp))
     Text(text = "流程历史", style = MaterialTheme.typography.titleMedium)
     LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
       items(history, key = { "${it.at}-${it.operator}" }) { h -> HistoryRow(h) }
@@ -178,43 +195,86 @@ internal fun ReceiptDetailScreen(
       Text(text = it, color = MaterialTheme.colorScheme.error)
       Spacer(modifier = Modifier.height(8.dp))
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-      Button(onClick = { onEdit(receipt!!) }, enabled = receipt != null && !delBusy) {
-        Text(text = "编辑")
-      }
-      Button(
-          onClick = {
-            scope.launch {
-              delVm.delete(id)
-              if (delVm.error.value == null) {
-                onBack()
-              }
+    DetailActionsRow(
+        canEdit = receipt != null && !delBusy,
+        deleting = delBusy,
+        onEdit = { onEdit(receipt!!) },
+        onDelete = {
+          scope.launch {
+            delVm.delete(id)
+            if (delVm.error.value == null) {
+              onBack()
             }
-          },
-          enabled = !delBusy,
-      ) {
-        Text(text = if (delBusy) "删除中…" else "删除")
-      }
-    }
+          }
+        },
+    )
   }
 }
 
-/** 字段段（必填集只读呈现）。 */
+/** 详情底部动作行：编辑 + 删除（删除中禁点防连击）。 */
+@Composable
+private fun DetailActionsRow(
+    canEdit: Boolean,
+    deleting: Boolean,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+) {
+  Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Button(onClick = onEdit, enabled = canEdit) { Text(text = "编辑") }
+    Button(onClick = onDelete, enabled = !deleting) { Text(text = if (deleting) "删除中…" else "删除") }
+  }
+}
+
+/** 字段段（swift ReceiptDetailView 接样信息全字段同构，REQ-2026-007 I01：缺席字段显示 —）。 */
 @Composable
 private fun ReceiptDetailFields(r: SampleReceipt) {
   Column(modifier = Modifier.fillMaxWidth()) {
-    Text(text = "委托编号：${r.commissionCode}", style = MaterialTheme.typography.bodyLarge)
-    Text(text = "委托单位 ID：${r.contractId}", style = MaterialTheme.typography.bodySmall)
-    Text(text = "委托日期：${r.commissionDate}", style = MaterialTheme.typography.bodySmall)
-    Text(text = "检测类别代码：${r.categoryCode}", style = MaterialTheme.typography.bodySmall)
-    Text(text = "接样人：${r.receivedBy}", style = MaterialTheme.typography.bodySmall)
-    Text(text = "样品来源：${r.sampleSource}", style = MaterialTheme.typography.bodySmall)
-    Text(text = "检测性质：${r.testCategory}", style = MaterialTheme.typography.bodySmall)
+    Text(text = "接样信息", style = MaterialTheme.typography.titleMedium)
+    Spacer(modifier = Modifier.height(4.dp))
+    DetailRow("委托编号", r.commissionCode)
+    DetailRow("委托日期", r.commissionDate)
+    DetailRow("工程名称", r.projectName)
+    DetailRow("委托单位", r.clientUnit)
+    DetailRow("建设单位", r.buildingUnit)
+    DetailRow("监理单位", r.supervisorUnit)
+    DetailRow("施工单位", r.constructionUnit)
+    DetailRow("见证单位", r.witnessUnit)
+    DetailRow("见证人", r.witness)
+    DetailRow("送检人", r.inspector)
+    DetailRow("取样地点", r.samplingLocation)
+    DetailRow("报告类别", r.categoryCode)
+    DetailRow("样品来源", r.sampleSource)
+    DetailRow("检测性质", r.testCategory)
+    DetailRow("合同 ID", r.contractId)
+    DetailRow("当前环节", r.flowStatus.value)
+    DetailRow("检测结果", resultLabel(r.result))
+    DetailRow("检测负责人", r.assigneeName)
+    DetailRow("计划检测日期", r.plannedTestDate)
+    DetailRow("报告编号", r.reportCode)
+    DetailRow("报告日期", r.reportDate)
+  }
+}
+
+/** 检测结果标签（swift ReceiptResult.label 同构；缺席不兜业务值显示 —）。 */
+private fun resultLabel(result: ReceiptResult?): String =
+    when (result) {
+      ReceiptResult.pass -> "合格"
+      ReceiptResult.fail -> "不合格"
+      ReceiptResult.`_`,
+      null -> "—"
+    }
+
+/** 详情行（左标题右值，可空值缺席显示 —，REQ-2026-007 AC-2）。 */
+@Composable
+private fun DetailRow(title: String, value: String?) {
+  Row(modifier = Modifier.fillMaxWidth()) {
     Text(
-        text = "阶段：${r.flowStatus.value}",
+        text = title,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.weight(1f),
     )
+    Text(text = value ?: "—", style = MaterialTheme.typography.bodySmall)
   }
 }
 
