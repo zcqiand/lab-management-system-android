@@ -60,6 +60,9 @@ rm -rf "$SHARED_PKG"
 #      含它的文件须 @file:OptIn(ExperimentalUuidApi)（ktor 栈 2.4.21 已转正故无此步）
 #   2) 空名枚举项定点补名：generator 对空串枚举值给空标识符（产非法 Kotlin `("")`）；
 #      @SerialName 保 wire 值，补名对齐 java generator 的 EMPTY 惯例。无命中即无操作，天然幂等。
+#   3) ContentNegotiation 补 json()：jvm-ktor 模板产空块 `install(ContentNegotiation) {}`——
+#      kotlinx_serialization 序列化器未注册，一切带 body 的 POST 真连即炸（"Fail to prepare
+#      request body"；2026-10-20 saas 仓 live 冒烟实证，同 generator 同缺陷）。
 find "$GEN_SHARED" -name '*.kt' -print0 | python -c '
 import sys, re
 for path in sys.stdin.buffer.read().split(b"\0"):
@@ -74,6 +77,14 @@ for path in sys.stdin.buffer.read().split(b"\0"):
                       "@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)\n\n\\1",
                       text, count=1, flags=re.M)
     text = re.sub(r"^    (\"\")([,;]?)$", r"    EMPTY(\"\")\1", text, flags=re.M)
+    if re.search(r"install\(ContentNegotiation\) \{\s*\}", text):
+        text = re.sub(r"install\(ContentNegotiation\) \{\s*\}",
+                      "install(ContentNegotiation) { json() }", text)
+        text = text.replace(
+            "import io.ktor.client.plugins.contentnegotiation.ContentNegotiation",
+            "import io.ktor.client.plugins.contentnegotiation.ContentNegotiation\n"
+            "import io.ktor.serialization.kotlinx.json.json",
+        )
     if text != orig:
         with open(p, "w", encoding="utf-8", newline="") as f:
             f.write(text)
