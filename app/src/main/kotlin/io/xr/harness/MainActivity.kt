@@ -1,5 +1,6 @@
 package io.xr.harness
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,10 +28,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import io.xr.harness.app.EncryptedTokenStore
+import io.xr.harness.app.KeystoreTokenCipher
 import io.xr.harness.app.ReceiptDetailScreen
 import io.xr.harness.app.ReceiptFormScreen
 import io.xr.harness.app.SharedPreferencesStore
-import io.xr.harness.app.SharedPreferencesTokenStore
 import io.xr.harness.app.fieldsFrom
 import io.xr.harness.app.listTenantsSeam
 import io.xr.harness.app.loginSeam
@@ -57,18 +59,28 @@ class MainActivity : ComponentActivity() {
   }
 }
 
+/** 会话存储组合（token 加密持久化，swift KeychainTokenStore 对位）：密文落独立 prefs，启动预载进内存持有（bearer 插件读）。 */
 @Composable
-fun AppRoot() {
-  val context = LocalContext.current
+private fun rememberSessionStores(
+    context: Context,
+): Triple<SharedPreferencesStore, EncryptedTokenStore, TokenHolder> {
   val prefsStore = remember { SharedPreferencesStore(context) }
-  val tokenStore = remember { SharedPreferencesTokenStore(context) }
-  // 持久化 token 启动预载进内存持有（ktor bearer 插件读 TokenHolder）
+  val tokenStore = remember {
+    EncryptedTokenStore(SharedPreferencesStore(context, "session.tokens"), KeystoreTokenCipher())
+  }
   val tokens = remember {
     TokenHolder().also {
       it.accessToken = tokenStore.loadAccess()
       it.refreshToken = tokenStore.loadRefresh()
     }
   }
+  return Triple(prefsStore, tokenStore, tokens)
+}
+
+@Composable
+fun AppRoot() {
+  val context = LocalContext.current
+  val (prefsStore, tokenStore, tokens) = rememberSessionStores(context)
   val store = remember { SessionStore(prefsStore, tokenStore) }
   val scope = rememberCoroutineScope()
   val vm = remember {
