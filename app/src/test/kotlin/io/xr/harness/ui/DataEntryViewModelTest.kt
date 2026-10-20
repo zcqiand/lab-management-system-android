@@ -1,5 +1,6 @@
 package io.xr.harness.ui
 
+import io.xr.harness.Fn
 import io.xr.harness.core.AuthError
 import io.xr.lab.shared.models.CreateTestRecordRequest
 import io.xr.lab.shared.models.InspectionParameter
@@ -73,6 +74,7 @@ class DataEntryViewModelTest {
       )
 
   @Test
+  @Fn(["M03.F03.I01"])
   fun `load assembles catalog and keys records`() {
     val vm =
         DataEntryViewModel(
@@ -97,6 +99,7 @@ class DataEntryViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F03.I02"])
   fun `create request trims and requires core fields`() {
     val vm = emptyVm()
     vm.selectedSampleId = "s-1"
@@ -123,6 +126,7 @@ class DataEntryViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F03.I02"])
   fun `save without record creates with verdict in body`() {
     val vm =
         DataEntryViewModel(
@@ -149,6 +153,7 @@ class DataEntryViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F03.I03"])
   fun `verdict revision with existing record goes update`() {
     val vm =
         DataEntryViewModel(
@@ -178,6 +183,7 @@ class DataEntryViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F03.I02"])
   fun `save failure reports and keeps fields`() {
     val vm =
         DataEntryViewModel(
@@ -200,6 +206,7 @@ class DataEntryViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F03.I01"])
   fun `load failure clears catalog and reports`() {
     val vm =
         DataEntryViewModel(
@@ -217,6 +224,7 @@ class DataEntryViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F03.I02"])
   fun `makeUpdateRequest carries form values with keys unchanged`() {
     val vm = emptyVm()
     vm.selectedSampleId = "s-1"

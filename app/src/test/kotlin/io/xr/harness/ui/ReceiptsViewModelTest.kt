@@ -1,5 +1,6 @@
 package io.xr.harness.ui
 
+import io.xr.harness.Fn
 import io.xr.harness.core.AuthError
 import io.xr.harness.core.ReceiptFilter
 import io.xr.harness.core.ReceiptListQuery
@@ -35,6 +36,7 @@ class ReceiptsViewModelTest {
       )
 
   @Test
+  @Fn(["M03.F01.I01"])
   fun `load success replaces items and computes hasMore`() {
     val seams = ReceiptsViewModel.Seams(list = { listOf(receipt("r1"), receipt("r2")) })
     val vm = ReceiptsViewModel(seams)
@@ -48,6 +50,7 @@ class ReceiptsViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I01"])
   fun `load failure sets error and leaves items empty`() {
     val seams = ReceiptsViewModel.Seams(list = { _ -> throw AuthError.Server("服务器错误（HTTP 500）") })
     val vm = ReceiptsViewModel(seams)
@@ -60,6 +63,7 @@ class ReceiptsViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I01"])
   fun `filter and keyword propagate into provider query`() {
     var seen: ReceiptListQuery? = null
     val seams =
@@ -80,6 +84,7 @@ class ReceiptsViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I01"])
   fun `blank keyword normalizes to null`() {
     var seen: ReceiptListQuery? = null
     val seams =
@@ -97,6 +102,7 @@ class ReceiptsViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I01"])
   fun `loadNextPage appends full page and keeps hasMore`() {
     val fullPage = (1..ReceiptsPaging.DEFAULT_PAGE_SIZE).map { receipt("r$it") }
     var call = 0
@@ -118,6 +124,7 @@ class ReceiptsViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I01"])
   fun `loadNextPage empty page rolls back page number and stops`() {
     val fullPage = (1..ReceiptsPaging.DEFAULT_PAGE_SIZE).map { receipt("r$it") }
     val seams =
@@ -135,6 +142,7 @@ class ReceiptsViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I01"])
   fun `loadNextPage failure rolls back page and reports error`() {
     val fullPage = (1..ReceiptsPaging.DEFAULT_PAGE_SIZE).map { receipt("r$it") }
     val seams =
@@ -158,6 +166,7 @@ class ReceiptsViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I01"])
   fun `reload after filter change replaces items from page 1`() {
     val seams =
         ReceiptsViewModel.Seams(
@@ -179,6 +188,7 @@ class ReceiptsViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I08"])
   fun `apply updates flowStatus by id and leaves uninvolved rows untouched`() {
     val seams = ReceiptsViewModel.Seams(list = { listOf(receipt("r1"), receipt("r2")) })
     val vm = ReceiptsViewModel(seams)
@@ -196,6 +206,7 @@ class ReceiptsViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I08"])
   fun `apply with no flowStatus on result leaves row untouched`() {
     val seams = ReceiptsViewModel.Seams(list = { listOf(receipt("r1")) })
     val vm = ReceiptsViewModel(seams)
@@ -207,6 +218,7 @@ class ReceiptsViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I08"])
   fun `apply with empty results is a no-op`() {
     val seams = ReceiptsViewModel.Seams(list = { listOf(receipt("r1")) })
     val vm = ReceiptsViewModel(seams)
@@ -218,6 +230,7 @@ class ReceiptsViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I01"])
   fun `load pins flowStatus preset into provider query`() {
     var seen: ReceiptListQuery? = null
     val seams =

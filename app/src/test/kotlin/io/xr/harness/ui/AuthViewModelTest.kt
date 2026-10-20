@@ -1,5 +1,6 @@
 package io.xr.harness.ui
 
+import io.xr.harness.Fn
 import io.xr.harness.core.AuthError
 import io.xr.harness.core.LoginOutcome
 import io.xr.harness.core.PreferencesStore
@@ -50,6 +51,7 @@ class AuthViewModelTest {
       SessionStore(MemPrefs(), MemTokens()).apply { saveConfig("http://10.0.2.2:5204") }
 
   @Test
+  @Fn(["M01.F05.I06"])
   fun `login success adopts session with tokens and returns true`() {
     val store = configuredStore()
     val seams =
@@ -74,6 +76,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M01.F05.I06"])
   fun `login failure lands in failed phase and stays needsLogin`() {
     val store = configuredStore()
     val seams =
@@ -90,6 +93,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M01.F05.I06"])
   fun `seam throwing AuthError maps to failed phase`() {
     val store = configuredStore()
     val seams =
@@ -105,6 +109,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M01.F05.I06"])
   fun `seam throwing unexpected maps to unreachable failure`() {
     val store = configuredStore()
     val seams =
@@ -120,6 +125,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M01.F05.I06"])
   fun `unconfigured store still lets login reach seam and report failure`() {
     // lab 无 clientId，配置缺失的拦截在 seam 的 baseUrl 分支（ClientNotConfigured 文案），VM 不拦
     val store = SessionStore(MemPrefs(), MemTokens())
@@ -141,6 +147,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M01.F05.I06"])
   fun `blank username short-circuits without calling seam`() {
     val store = configuredStore()
     var called = false
@@ -161,6 +168,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `restore with valid token and whoami stays ready and publishes user`() {
     val store = configuredStore()
     store.adoptLogin("alice", "t-1", "tok-1", "ref-1")
@@ -182,6 +190,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `restore with invalid session clears to needsLogin`() {
     val store = configuredStore()
     store.adoptLogin("alice", "t-1", "stale-tok", null)
@@ -195,6 +204,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `restore without session skips whoami`() {
     val store = configuredStore()
     var whoamiCalled = false
@@ -214,6 +224,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M01.F05.I04"])
   fun `logout clears session tokens and user`() {
     val store = configuredStore()
     store.adoptLogin("alice", "t-1", "tok-1", "ref-1")
@@ -235,6 +246,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `reconfigure clears config back to needsSetup`() {
     val store = configuredStore()
     store.adoptLogin("alice", null, "tok-1", null)
@@ -246,6 +258,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M00.F02.I01"])
   fun `switch tenant success adopts tenant refetches user and returns true`() {
     val store = configuredStore()
     store.adoptLogin("alice", "t-1", "tok-1", "ref-1")
@@ -272,6 +285,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M00.F02.I01"])
   fun `switch tenant failure shows failed phase and keeps session untouched`() {
     val store = configuredStore()
     store.adoptLogin("alice", "t-1", "tok-1", "ref-1")
@@ -291,6 +305,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M00.F02.I01"])
   fun `switch tenant seam throwing maps to unreachable failure`() {
     val store = configuredStore()
     store.adoptLogin("alice", "t-1", "tok-1", "ref-1")
@@ -304,6 +319,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M00.F02.I01"])
   fun `loadTenants populates tenant list`() {
     val seams =
         AuthViewModel.Seams(
@@ -322,6 +338,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M00.F02.I01"])
   fun `loadTenants failure yields empty list without crashing`() {
     val seams = AuthViewModel.Seams(listTenants = { throw BoomError("boom") })
     val vm = AuthViewModel(configuredStore(), seams)
@@ -332,6 +349,7 @@ class AuthViewModelTest {
   }
 
   @Test
+  @Fn(["M01.F05.I04"])
   fun `logout clears tenants too`() {
     val store = configuredStore()
     store.adoptLogin("alice", "t-1", "tok-1", "ref-1")

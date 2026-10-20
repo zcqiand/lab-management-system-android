@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
  * Web 专属非范围）。装载路径装 ext 补录门（REQ-2026-008 T-2，AC-1）： 预览装好后按 categoryCode 判 extFields 缺
  * key，缺则先出补录表单不渲染预览；合并落库成功（AC-3）重载预览。
  */
+// @entry M03.F09.I03 — 报告预览（逐样品归集数据面摘要，swift sheet 同位）
 @Composable
 internal fun ReportPreviewScreen(
     receiptId: String,

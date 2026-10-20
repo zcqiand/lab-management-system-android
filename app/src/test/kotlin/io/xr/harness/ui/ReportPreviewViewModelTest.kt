@@ -1,5 +1,6 @@
 package io.xr.harness.ui
 
+import io.xr.harness.Fn
 import io.xr.lab.shared.models.Sample
 import io.xr.lab.shared.models.TestRecord
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -38,6 +39,7 @@ class ReportPreviewViewModelTest {
       )
 
   @Test
+  @Fn(["M03.F09.I03"])
   fun `load groups records by sample`() {
     val queried = mutableListOf<String>()
     val vm =
@@ -70,6 +72,7 @@ class ReportPreviewViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F09.I03"])
   fun `empty samples yields empty preview`() {
     val vm =
         ReportPreviewViewModel(
@@ -85,6 +88,7 @@ class ReportPreviewViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F09.I03"])
   fun `load failure surfaces message and clears state`() {
     val vm =
         ReportPreviewViewModel(

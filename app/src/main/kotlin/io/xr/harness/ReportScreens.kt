@@ -81,6 +81,10 @@ private fun ReportPhaseMenu(onBack: () -> Unit, onOpen: (ReportPhase) -> Unit) {
 }
 
 /** 单阶段队列屏（swift ReportPhaseView 同构）：查询钉死本阶段环节，行三动作走 phase act。 */
+// @entry M03.F05.I02 — 审核阶段提交/退回（行三动作 phase act）
+// @entry M03.F06.I02 — 批准阶段提交/驳回
+// @entry M03.F07.I02 — 发放阶段提交（生成报告编号）
+// @entry M03.F08.I02 — 归档阶段提交
 @Composable
 internal fun ReportPhaseQueueScreen(
     phase: ReportPhase,

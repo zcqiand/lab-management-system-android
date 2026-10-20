@@ -1,5 +1,6 @@
 package io.xr.harness.core
 
+import io.xr.harness.Fn
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -42,12 +43,14 @@ class SessionStoreTest {
   private val store = SessionStore(prefs, tokens)
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `fresh store needs setup`() {
     assertEquals(SessionState.NeedsSetup, store.state)
     assertFalse(store.isConfigured)
   }
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `saveConfig blank baseUrl fails fast`() {
     assertThrows(IllegalStateException::class.java) { store.saveConfig("   ") }
     assertFalse(store.isConfigured)
@@ -55,6 +58,7 @@ class SessionStoreTest {
   }
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `saveConfig persists and state becomes needsLogin`() {
     // 归一化（去尾斜杠）归 ConfigScreen/ApiGlue，SessionStore 只 trim 存原值
     store.saveConfig("http://10.0.2.2:5204")
@@ -64,6 +68,7 @@ class SessionStoreTest {
   }
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `adoptLogin persists session and tokens and moves to ready`() {
     store.saveConfig("http://10.0.2.2:5204")
     store.adoptLogin("alice", "t-1", "tok-1", "ref-1")
@@ -73,6 +78,7 @@ class SessionStoreTest {
   }
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `ready state requires token`() {
     store.saveConfig("http://10.0.2.2:5204")
     store.adoptLogin("alice", "t-1", "tok-1", "ref-1")
@@ -83,6 +89,7 @@ class SessionStoreTest {
   }
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `adoptLogin with null tenant yields ready without tenant`() {
     store.saveConfig("http://10.0.2.2:5204")
     store.adoptLogin("alice", null, "tok-1", null)
@@ -90,6 +97,7 @@ class SessionStoreTest {
   }
 
   @Test
+  @Fn(["M01.F05.I04"])
   fun `clearSession wipes tokens too and returns to needsLogin`() {
     store.saveConfig("http://10.0.2.2:5204")
     store.adoptLogin("alice", "t-1", "tok-1", "ref-1")
@@ -101,6 +109,7 @@ class SessionStoreTest {
   }
 
   @Test
+  @Fn(["M00.F02.I01"])
   fun `adoptTenant switches current tenant in place`() {
     store.saveConfig("http://10.0.2.2:5204")
     store.adoptLogin("alice", "t-1", "tok-1", "ref-1")
@@ -110,6 +119,7 @@ class SessionStoreTest {
   }
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `clearConfig returns to needsSetup`() {
     store.saveConfig("http://10.0.2.2:5204")
     store.adoptLogin("alice", null, "tok-1", null)

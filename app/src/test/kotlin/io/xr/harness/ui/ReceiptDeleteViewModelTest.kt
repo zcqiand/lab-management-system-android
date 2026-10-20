@@ -1,5 +1,6 @@
 package io.xr.harness.ui
 
+import io.xr.harness.Fn
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test
 class ReceiptDeleteViewModelTest {
 
   @Test
+  @Fn(["M03.F01.I03"])
   fun deleteCallsSeamWithConfirmedID() =
       kotlinx.coroutines.runBlocking {
         var deleted: String? = null
@@ -21,6 +23,7 @@ class ReceiptDeleteViewModelTest {
       }
 
   @Test
+  @Fn(["M03.F01.I03"])
   fun deleteFailureSurfacesMessageWithoutThrow() =
       kotlinx.coroutines.runBlocking {
         val vm = ReceiptDeleteViewModel { _ -> throw IllegalStateException("boom") }

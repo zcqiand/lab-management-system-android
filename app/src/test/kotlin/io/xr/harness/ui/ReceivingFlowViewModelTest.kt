@@ -1,5 +1,6 @@
 package io.xr.harness.ui
 
+import io.xr.harness.Fn
 import io.xr.lab.shared.models.FlowAction
 import io.xr.lab.shared.models.FlowActionRequest
 import io.xr.lab.shared.models.FlowActionResult
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test
 class ReceivingFlowViewModelTest {
 
   @Test
+  @Fn(["M03.F01.I08"])
   fun `act with empty selection fails fast without calling endpoint`() {
     var called = false
     val vm =
@@ -38,6 +40,7 @@ class ReceivingFlowViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I08"])
   fun `act with missing operator fails fast without calling endpoint`() {
     var called = false
     val vm =
@@ -59,6 +62,7 @@ class ReceivingFlowViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I04", "M03.F01.I08"])
   fun `act sends action ids reason and passes results through`() {
     var seenAction: FlowAction? = null
     var seenIds: List<String>? = null
@@ -86,6 +90,7 @@ class ReceivingFlowViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I08"])
   fun `failure result carries message not throw`() {
     // ok=false 是逐单业务失败（状态不允许提交），透传给 UI 按单呈现，不 throw
     val failing =
@@ -106,6 +111,7 @@ class ReceivingFlowViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I08"])
   fun `makeRequest builds request and guards`() {
     val vm = ReceivingFlowViewModel(operatorName = "alice", act = { _, _, _ -> emptyList() })
 

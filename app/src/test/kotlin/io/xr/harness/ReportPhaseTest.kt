@@ -52,6 +52,7 @@ class ReportPhaseTest {
   }
 
   @Test
+  @Fn(["M03.F05.I01", "M03.F06.I01", "M03.F07.I01", "M03.F08.I01"])
   fun `four phases map to distinct flow statuses`() {
     val statuses = ReportPhase.entries.map { it.flowStatus }
 
@@ -63,6 +64,7 @@ class ReportPhaseTest {
   }
 
   @Test
+  @Fn(["M03.F05.I01", "M03.F06.I01", "M03.F07.I01", "M03.F08.I01"])
   fun `phase titles follow stage semantics`() {
     assertEquals("报告审核", ReportPhase.Review.phaseTitle)
     assertEquals("报告批准", ReportPhase.Approval.phaseTitle)
@@ -71,6 +73,7 @@ class ReportPhaseTest {
   }
 
   @Test
+  @Fn(["M03.F05.I02", "M03.F06.I02", "M03.F07.I02", "M03.F08.I02"])
   fun `submit labels follow phase semantics`() {
     assertEquals("审核通过", ReportPhase.Review.submitLabel)
     assertEquals("批准", ReportPhase.Approval.submitLabel)
@@ -79,6 +82,7 @@ class ReportPhaseTest {
   }
 
   @Test
+  @Fn(["M03.F05.I01", "M03.F06.I01", "M03.F07.I01", "M03.F08.I01"])
   fun `queue pinning per phase with keyword`() {
     for (phase in ReportPhase.entries) {
       val seen = mutableListOf<ReceiptListQuery>()
@@ -91,6 +95,7 @@ class ReportPhaseTest {
   }
 
   @Test
+  @Fn(["M03.F05.I02", "M03.F06.I02", "M03.F07.I02", "M03.F08.I02"])
   fun `action labels for act confirm dialog`() {
     assertEquals("提交", actionLabel(FlowAction.submit))
     assertEquals("退回", actionLabel(FlowAction.`return`))

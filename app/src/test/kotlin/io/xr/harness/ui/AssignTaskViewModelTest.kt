@@ -1,5 +1,6 @@
 package io.xr.harness.ui
 
+import io.xr.harness.Fn
 import io.xr.harness.core.AuthError
 import io.xr.lab.shared.models.AssignTaskRequest
 import io.xr.lab.shared.models.FlowStatus
@@ -40,6 +41,7 @@ class AssignTaskViewModelTest {
       )
 
   @Test
+  @Fn(["M03.F02.I02"])
   fun `makeRequest trims and requires both fields`() {
     val vm = AssignTaskViewModel(persist = { _, _ -> throw IllegalStateException("不该触发持久化") })
     vm.assigneeName = "  王检测 "
@@ -57,6 +59,7 @@ class AssignTaskViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F02.I02"])
   fun `cancel request clears all fields`() {
     val vm = AssignTaskViewModel(persist = { _, _ -> throw IllegalStateException("不该触发持久化") })
 
@@ -68,6 +71,7 @@ class AssignTaskViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F02.I02"])
   fun `save returns adopted receipt`() {
     val updated = receipt(assigneeName = "王检测", plannedTestDate = "2026-10-01")
     var seenId: String? = null
@@ -93,6 +97,7 @@ class AssignTaskViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F02.I02"])
   fun `save failure reports and keeps fields`() {
     val vm =
         AssignTaskViewModel(

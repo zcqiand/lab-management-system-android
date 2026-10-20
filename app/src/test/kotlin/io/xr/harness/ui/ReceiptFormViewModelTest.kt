@@ -1,5 +1,6 @@
 package io.xr.harness.ui
 
+import io.xr.harness.Fn
 import io.xr.lab.shared.models.FlowStatus
 import io.xr.lab.shared.models.SampleReceipt
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -43,6 +44,7 @@ class ReceiptFormViewModelTest {
       )
 
   @Test
+  @Fn(["M03.F01.I02"])
   fun validateRequiresFullRequiredSet() {
     val vm = ReceiptFormViewModel(fields = ReceiptFormFields())
     assertFalse(vm.validate(), "全空必填集不过")
@@ -55,6 +57,7 @@ class ReceiptFormViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I02"])
   fun makeCreateRequestCarriesRequiredSet() {
     val vm = ReceiptFormViewModel(fields = filledFields())
     val request = vm.makeCreateRequest()
@@ -68,6 +71,7 @@ class ReceiptFormViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I02"])
   fun makeCreateRequestFailsFastWhenInvalid() {
     val vm = ReceiptFormViewModel(fields = ReceiptFormFields())
     try {
@@ -79,6 +83,7 @@ class ReceiptFormViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I02"])
   fun makeUpdateRequestCarriesOnlyChangedFields() {
     val original = filledFields()
     val changed = original.copy(receivedBy = "bob", sampleSource = "supplied")
@@ -93,6 +98,7 @@ class ReceiptFormViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I02"])
   fun updateWithClearedRequiredFieldFailsValidation() {
     // 必填集在编辑态同样成立：清空必填不是合法 PATCH
     val vm = ReceiptFormViewModel(fields = filledFields().copy(sampleSource = "  "))
@@ -104,6 +110,7 @@ class ReceiptFormViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I02"])
   fun saveRoutesCreateOrUpdateByPresenceOfID() =
       kotlinx.coroutines.runBlocking {
         val calls = mutableListOf<Triple<String?, Boolean, Boolean>>()
@@ -124,6 +131,7 @@ class ReceiptFormViewModelTest {
       }
 
   @Test
+  @Fn(["M03.F01.I02"])
   fun saveFailsFastOnInvalidFieldsWithoutCallingEndpoint() =
       kotlinx.coroutines.runBlocking {
         var called = false

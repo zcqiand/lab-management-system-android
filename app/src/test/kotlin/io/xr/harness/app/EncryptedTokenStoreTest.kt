@@ -1,5 +1,6 @@
 package io.xr.harness.app
 
+import io.xr.harness.Fn
 import io.xr.harness.core.PreferencesStore
 import io.xr.harness.core.TokenCipher
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -38,6 +39,7 @@ class EncryptedTokenStoreTest {
   }
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `save 落密文且读回还原明文`() {
     val prefs = MemPrefs()
     val store = EncryptedTokenStore(prefs, MarkCipher())
@@ -50,6 +52,7 @@ class EncryptedTokenStoreTest {
   }
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `access 与 refresh 独立持久化`() {
     val prefs = MemPrefs()
     val store = EncryptedTokenStore(prefs, MarkCipher())
@@ -64,6 +67,7 @@ class EncryptedTokenStoreTest {
   }
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `篡改密文 fail-closed 返 null 不崩`() {
     val prefs = MemPrefs()
     val store = EncryptedTokenStore(prefs, MarkCipher())
@@ -76,6 +80,7 @@ class EncryptedTokenStoreTest {
   }
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `清除 save null 后无密文残留`() {
     val prefs = MemPrefs()
     val store = EncryptedTokenStore(prefs, MarkCipher())
@@ -88,6 +93,7 @@ class EncryptedTokenStoreTest {
   }
 
   @Test
+  @Fn(["M01.F05.I02"])
   fun `密文不等于明文（真实 JWT 形状）`() {
     val prefs = MemPrefs()
     val store = EncryptedTokenStore(prefs, MarkCipher())

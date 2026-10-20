@@ -141,6 +141,7 @@ internal fun ReceiptFormScreen(
 }
 
 /** 详情（swift ReceiptDetailView 同构）：字段段 + 流程历史（at 倒序）+ 编辑/删除。 */
+// @entry M03.F09.I01 — 接样单详情页（接样信息全字段）
 @Composable
 internal fun ReceiptDetailScreen(
     id: String,

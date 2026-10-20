@@ -1,5 +1,6 @@
 package io.xr.harness.ui
 
+import io.xr.harness.Fn
 import io.xr.lab.shared.models.ExtFieldDef
 import io.xr.lab.shared.models.ExtFieldDefSource
 import io.xr.lab.shared.models.ExtFieldDefType
@@ -57,6 +58,7 @@ class SampleExtViewModelTest {
       )
 
   @Test
+  @Fn(["M03.F01.I07"])
   fun `needs form when key missing`() {
     val vm =
         vmOf(
@@ -78,6 +80,7 @@ class SampleExtViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I07"])
   fun `no form when all keys covered`() {
     val vm = vmOf(listOf(makeDef("sampleModel", "型号", required = true)))
 
@@ -88,6 +91,7 @@ class SampleExtViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I07"])
   fun `receipt source fields excluded from form`() {
     val vm = vmOf(listOf(makeDef("pourDate", "浇筑日期", source = ExtFieldDefSource.receipt)))
 
@@ -98,6 +102,7 @@ class SampleExtViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I07"])
   fun `load prefills existing ext values`() {
     val vm =
         vmOf(
@@ -114,6 +119,7 @@ class SampleExtViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I07"])
   fun `validate blocks on empty required`() {
     var persisted = false
     val vm =
@@ -138,6 +144,7 @@ class SampleExtViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I07"])
   fun `save merges existing keys and new values`() {
     var persistedId: String? = null
     var persistedExt: Map<String, String>? = null
@@ -161,6 +168,7 @@ class SampleExtViewModelTest {
   }
 
   @Test
+  @Fn(["M03.F01.I07"])
   fun `save failure surfaces error and keeps draft`() {
     val vm =
         vmOf(listOf(makeDef("sampleModel", "型号", required = true))) { _, _ ->

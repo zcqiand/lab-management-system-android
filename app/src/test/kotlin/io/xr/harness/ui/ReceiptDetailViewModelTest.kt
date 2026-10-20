@@ -1,5 +1,6 @@
 package io.xr.harness.ui
 
+import io.xr.harness.Fn
 import io.xr.lab.shared.models.FlowAction
 import io.xr.lab.shared.models.FlowHistoryEntry
 import io.xr.lab.shared.models.FlowStatus
@@ -32,6 +33,7 @@ class ReceiptDetailViewModelTest {
       )
 
   @Test
+  @Fn(["M03.F01.I06"])
   fun loadFetchesReceiptAndHistorySortedDesc() =
       kotlinx.coroutines.runBlocking {
         val entry = { at: String ->
@@ -57,6 +59,7 @@ class ReceiptDetailViewModelTest {
       }
 
   @Test
+  @Fn(["M03.F01.I06"])
   fun loadErrorSurfacesMessageAndClearsState() =
       kotlinx.coroutines.runBlocking {
         val vm = ReceiptDetailViewModel { _ -> throw IllegalStateException("boom") }
