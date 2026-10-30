@@ -318,7 +318,7 @@ import io.ktor.http.ParametersBuilder
         /**
         * GET /api/catalog/brands
         * 
-        * 
+        * 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
          * @param page  (optional)
          * @param pageSize  (optional)
          * @param inspectionObjectCode  (optional)
@@ -359,7 +359,7 @@ import io.ktor.http.ParametersBuilder
         /**
         * GET /api/catalog/grades
         * 
-        * 
+        * 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
          * @param page  (optional)
          * @param pageSize  (optional)
          * @param inspectionObjectCode  (optional)
@@ -400,7 +400,7 @@ import io.ktor.http.ParametersBuilder
         /**
         * GET /api/catalog/models
         * 
-        * 
+        * 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
          * @param page  (optional)
          * @param pageSize  (optional)
          * @param inspectionObjectCode  (optional)
@@ -441,7 +441,7 @@ import io.ktor.http.ParametersBuilder
         /**
         * GET /api/catalog/specs
         * 
-        * 
+        * 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
          * @param page  (optional)
          * @param pageSize  (optional)
          * @param inspectionObjectCode  (optional)

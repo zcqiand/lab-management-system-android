@@ -33,8 +33,8 @@ import kotlinx.serialization.Contextual
  * 
  *
  * @param items 
- * @param page 
- * @param pageSize 
+ * @param page 当前实现仅回显，不切片：参照实现返回全量，无分页语义。
+ * @param pageSize 当前实现仅回显，不切片。
  * @param total 
  */
 @Serializable
@@ -44,9 +44,11 @@ data class CatalogListBrands200Response (
     @SerialName(value = "items")
     val items: kotlin.collections.List<InspectionBrand>,
 
+    /* 当前实现仅回显，不切片：参照实现返回全量，无分页语义。 */
     @SerialName(value = "page")
     val page: kotlin.Int,
 
+    /* 当前实现仅回显，不切片。 */
     @SerialName(value = "pageSize")
     val pageSize: kotlin.Int,
 

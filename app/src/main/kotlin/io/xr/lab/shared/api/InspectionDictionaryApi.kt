@@ -539,7 +539,7 @@ import io.ktor.http.ParametersBuilder
         /**
         * GET /api/inspection/objects
         * 
-        * 
+        * 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
          * @param page  (optional)
          * @param pageSize  (optional)
          * @param inspectionSpecialtyCode  (optional)
@@ -580,7 +580,7 @@ import io.ktor.http.ParametersBuilder
         /**
         * GET /api/inspection/parameters
         * 
-        * 
+        * 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
          * @param page  (optional)
          * @param pageSize  (optional)
          * @param keyword  (optional)
@@ -621,7 +621,7 @@ import io.ktor.http.ParametersBuilder
         /**
         * GET /api/inspection/specialties
         * 
-        * 
+        * 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
          * @param page  (optional)
          * @param pageSize  (optional)
          * @param keyword  (optional)
@@ -732,7 +732,7 @@ import io.ktor.http.ParametersBuilder
         /**
         * GET /api/inspection/standards
         * 
-        * 
+        * 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
          * @param page  (optional)
          * @param pageSize  (optional)
          * @param keyword  (optional)
